@@ -2,8 +2,8 @@
   "name": "AlgoSched – Automated Class Scheduling",
   "short_name": "AlgoSched",
   "description": "Automated Class Scheduling System for CCS Students of Rizal College of Taal using Elitist Genetic Algorithm and Constraint Satisfaction",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/testing/",
+  "scope": "/testing/",
   "display": "standalone",
   "background_color": "#060912",
   "theme_color": "#00e5ff",
@@ -12,13 +12,13 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/testing/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "/testing/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -26,13 +26,13 @@
   ],
   "screenshots": [
     {
-      "src": "screenshot.png",
+      "src": "/testing/screenshot.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "screenshot.png",
+      "src": "/testing/screenshot.png",
       "sizes": "540x720",
       "type": "image/png",
       "form_factor": "narrow"
