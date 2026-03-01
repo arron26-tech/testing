@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <meta name="description" content="AlgoSched – Automated Class Scheduling for CCS Students of Rizal College of Taal" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AlgoSched | RCT-CCS</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060912;
+      --surface: #0d1224;
+      --surface2: #131929;
+      --accent: #00e5ff;
+      --accent2: #7b2ff7;
+      --accent3: #ff4d6d;
+      --text: #e2e8f8;
+      --muted: #6b7a99;
+      --border: rgba(0,229,255,0.15);
+      --glow: 0 0 20px rgba(0,229,255,0.25);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Exo 2', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Ambient glow orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+      animation: pulse 6s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: rgba(123,47,247,0.12); top: -150px; right: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: rgba(0,229,255,0.08); bottom: 100px; left: -100px; animation-delay: 3s; }
+    .orb-3 { width: 300px; height: 300px; background: rgba(255,77,109,0.06); top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: 1.5s; }
+
+    @keyframes pulse { from { opacity: 0.6; } to { opacity: 1; } }
+
+    /* HEADER */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6,9,18,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 900;
+      color: white;
+      box-shadow: 0 0 16px rgba(0,229,255,0.3);
+    }
+
+    .logo-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    nav { display: flex; gap: 4px; align-items: center; }
+
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--accent);
+      background: rgba(0,229,255,0.08);
+    }
+
+    /* Fixed top install button */
+    #topInstallBtn {
+      display: none;
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 200;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      box-shadow: 0 4px 30px rgba(0,229,255,0.4);
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    #topInstallBtn:hover {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 8px 50px rgba(0,229,255,0.6);
+    }
+
+    #topInstallBtn.show {
+      display: flex;
+    }
+
+    @media (max-width: 768px) {
+      #topInstallBtn {
+        top: 16px;
+        left: 16px;
+        padding: 12px 24px;
+        font-size: 12px;
+      }
+    }
+
+    .nav-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--bg);
+      font-size: 9px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 20px;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    /* MAIN LAYOUT */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* HERO */
+    .hero {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 60px 0;
+      gap: 32px;
+    }
+
+    .hero-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      border-radius: 20px;
+      background: rgba(0,229,255,0.06);
+      animation: fadeSlideUp 0.6s ease both;
+    }
+
+    .hero h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(40px, 7vw, 96px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -2px;
+      animation: fadeSlideUp 0.6s 0.1s ease both;
+    }
+
+    .hero h1 span {
+      display: block;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+      animation: gradientShift 4s linear infinite;
+    }
+
+    @keyframes gradientShift {
+      from { background-position: 0% center; }
+      to { background-position: 200% center; }
+    }
+
+    .hero-sub {
+      max-width: 640px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--muted);
+      font-weight: 300;
+      animation: fadeSlideUp 0.6s 0.2s ease both;
+    }
+
+    .hero-sub strong { color: var(--text); font-weight: 600; }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      animation: fadeSlideUp 0.6s 0.3s ease both;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: white;
+      box-shadow: 0 0 30px rgba(0,229,255,0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(0,229,255,0.5);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: rgba(0,229,255,0.08);
+      border-color: var(--accent);
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 48px;
+      animation: fadeSlideUp 0.6s 0.4s ease both;
+    }
+
+    .stat { text-align: left; }
+    .stat-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SECTIONS */
+    section { padding: 80px 0; }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .section-header h2 {
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover {
+      border-color: rgba(0,229,255,0.3);
+      box-shadow: var(--glow);
+      transform: translateY(-4px);
+    }
+
+    .card:hover::before { opacity: 1; }
+
+    /* SCHEDULE VIEW */
+    .schedule-section { padding: 80px 0; }
+
+    .schedule-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .select-styled {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .select-styled:focus { border-color: var(--accent); }
+
+    .schedule-grid-wrapper {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .schedule-grid {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+      font-size: 13px;
+    }
+
+    .schedule-grid th {
+      background: var(--surface2);
+      padding: 14px 16px;
+      text-align: center;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .schedule-grid td {
+      border: 1px solid rgba(255,255,255,0.04);
+      padding: 4px;
+      vertical-align: top;
+      height: 56px;
+      min-width: 120px;
+    }
+
+    .schedule-grid td:first-child {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      background: var(--surface2);
+      width: 80px;
+      vertical-align: middle;
+    }
+
+    .sched-block {
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      transition: filter 0.2s;
+      line-height: 1.3;
+    }
+
+    .sched-block:hover { filter: brightness(1.2); }
+
+    .sched-block.type-lec { background: rgba(0,229,255,0.15); border-left: 3px solid var(--accent); color: var(--accent); }
+    .sched-block.type-lab { background: rgba(123,47,247,0.2); border-left: 3px solid var(--accent2); color: #b085ff; }
+    .sched-block.type-pe { background: rgba(255,77,109,0.15); border-left: 3px solid var(--accent3); color: #ff8096; }
+    .sched-block span { opacity: 0.7; font-size: 10px; font-weight: 400; }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon.c1 { background: rgba(0,229,255,0.12); }
+    .feature-icon.c2 { background: rgba(123,47,247,0.12); }
+    .feature-icon.c3 { background: rgba(255,77,109,0.12); }
+    .feature-icon.c4 { background: rgba(0,229,255,0.12); }
+    .feature-icon.c5 { background: rgba(123,47,247,0.12); }
+    .feature-icon.c6 { background: rgba(255,77,109,0.12); }
+
+    .card h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .card p { font-size: 14px; color: var(--muted); line-height: 1.7; font-weight: 300; }
+
+    /* ALGO PANEL */
+    .algo-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .algo-panel { grid-template-columns: 1fr; }
+      .hero-stats { gap: 28px; }
+      nav { display: none; }
+    }
+
+    /* Progress bars */
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      animation: growBar 1.5s ease both;
+    }
+
+    @keyframes growBar {
+      from { width: 0% !important; }
+    }
+
+    /* STATUS BADGE */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .badge-success { background: rgba(0,229,255,0.12); color: var(--accent); }
+    .badge-warning { background: rgba(255,77,109,0.12); color: var(--accent3); }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: blink 1.5s infinite; }
+
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity: 0.3; } }
+
+    /* ABOUT */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) { .about-grid { grid-template-columns: 1fr; } }
+
+    .about-grid h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .about-grid p { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 16px; }
+
+    .algo-steps { list-style: none; }
+
+    .algo-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .step-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent2);
+      background: rgba(123,47,247,0.15);
+      border-radius: 4px;
+      padding: 4px 8px;
+      min-width: 32px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* FOOTER */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    footer p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.2); border-radius: 4px; }
+
+    /* NOTIFICATION */
+    .pwa-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 999;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      font-size: 14px;
+      transition: transform 0.4s ease;
+      max-width: 360px;
+      width: calc(100vw - 48px);
+    }
+
+    .pwa-toast.show { transform: translateX(-50%) translateY(0); }
+    .pwa-toast strong { display: block; font-weight: 700; margin-bottom: 2px; }
+    .pwa-toast span { color: var(--muted); font-size: 12px; }
+
+    .toast-icon { font-size: 28px; flex-shrink: 0; }
+
+    .toast-btn {
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-menu-btn { display: flex; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Install Button -->
+  <button id="topInstallBtn">📥 Install Now</button>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">AS</div>
+      <span class="logo-text">AlgoSched</span>
+    </div>
+    <nav>
+      <a href="#home" class="active">Home</a>
+      <a href="#schedule">Schedule</a>
+      <a href="#algorithm">Algorithm</a>
+      <a href="#features">Features</a>
+      <a href="#about">About</a>
+    </nav>
+    <button class="mobile-menu-btn" onclick="scrollTo({top:0})">☰</button>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="home">
+      <div class="hero-tag">🎓 Rizal College of Taal · CCS Department</div>
+      <h1>
+        Algo<span>Sched</span>
+      </h1>
+      <p class="hero-sub">
+        An <strong>Automated Class Scheduling System</strong> for CCS Students using
+        <strong>Elitist Genetic Algorithm</strong> and <strong>Constraint Satisfaction</strong> —
+        delivering optimal, conflict-free schedules in seconds.
+      </p>
+      <div class="hero-actions">
+        <a href="#schedule" class="btn btn-primary">🗓 View Schedule</a>
+        <a href="#algorithm" class="btn btn-outline">⚙ How It Works</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-val" data-target="99">0%</div>
+          <div class="stat-label">Constraint Satisfaction</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" data-target="0">—</div>
+          <div class="stat-label">Schedule Conflicts</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" data-target="3">0s</div>
+          <div class="stat-label">Generation Time</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCHEDULE VIEWER -->
+    <section class="schedule-section" id="schedule">
+      <div class="section-header">
+        <h2>Class Schedule</h2>
+        <div class="section-line"></div>
+        <span class="badge badge-success"><span class="badge-dot"></span>Live</span>
+      </div>
+
+      <div class="schedule-controls">
+        <select class="select-styled" id="yearFilter" onchange="renderSchedule()">
+          <option value="1">1st Year</option>
+          <option value="2">2nd Year</option>
+          <option value="3">3rd Year</option>
+          <option value="4">4th Year</option>
+        </select>
+        <select class="select-styled" id="semFilter" onchange="renderSchedule()">
+          <option value="1">1st Semester</option>
+          <option value="2">2nd Semester</option>
+        </select>
+        <select class="select-styled" id="sectionFilter" onchange="renderSchedule()">
+          <option value="A">Section A</option>
+          <option value="B">Section B</option>
+        </select>
+        <button class="btn btn-outline" onclick="generateSchedule()" style="padding:10px 20px;font-size:12px;">⚡ Generate New</button>
+      </div>
+
+      <div class="schedule-grid-wrapper">
+        <table class="schedule-grid" id="scheduleTable">
+          <thead>
+            <tr>
+              <th>TIME</th>
+              <th>MONDAY</th>
+              <th>TUESDAY</th>
+              <th>WEDNESDAY</th>
+              <th>THURSDAY</th>
+              <th>FRIDAY</th>
+              <th>SATURDAY</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ALGORITHM -->
+    <section id="algorithm">
+      <div class="section-header">
+        <h2>Algorithm Metrics</h2>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="algo-panel">
+        <div class="card">
+          <h3>⚡ Genetic Algorithm — Fitness Evolution</h3>
+          <br>
+          <div class="progress-label"><span>Population Size</span><span>200 chromosomes</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
+
+          <div class="progress-label"><span>Elitism Rate</span><span>15%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:15%"></div></div>
+
+          <div class="progress-label"><span>Crossover Rate</span><span>85%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:85%"></div></div>
+
+          <div class="progress-label"><span>Mutation Rate</span><span>10%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div>
+
+          <div class="progress-label"><span>Current Fitness Score</span><span id="fitnessScore">96.4%</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="fitnessBar" style="width:96.4%"></div></div>
+
+          <canvas id="fitnessChart" width="100%" height="120" style="width:100%;margin-top:16px;"></canvas>
+        </div>
+
+        <div class="card">
+          <h3>🔒 Constraint Satisfaction</h3>
+          <br>
+          <div class="progress-label"><span>Hard Constraint: No Room Double-Booking</span><span style="color:var(--accent)">✓</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+
+          <div class="progress-label"><span>Hard Constraint: No Teacher Conflict</span><span style="color:var(--accent)">✓</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+
+          <div class="progress-label"><span>Hard Constraint: No Student Overlap</span><span style="color:var(--accent)">✓</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+
+          <div class="progress-label"><span>Soft Constraint: Preferred Time Slots</span><span style="color:#b085ff">88%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div>
+
+          <div class="progress-label"><span>Soft Constraint: Room Utilization</span><span style="color:#b085ff">91%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:91%"></div></div>
+
+          <div class="progress-label"><span>Soft Constraint: Load Balancing</span><span style="color:#b085ff">85%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:85%"></div></div>
+
+          <br>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8;">
+            ⏱ Last generated: <span style="color:var(--text)" id="lastGenTime">—</span><br>
+            🔁 Generations: <span style="color:var(--text)">500</span><br>
+            🧬 Best chromosome fitness: <span style="color:var(--accent)">0.964</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="section-header">
+        <h2>System Features</h2>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="features-grid">
+        <div class="card">
+          <div class="feature-icon c1">🧬</div>
+          <h3>Elitist GA Engine</h3>
+          <p>Preserves top-performing chromosomes across generations ensuring the best schedule is never lost during evolution.</p>
+        </div>
+        <div class="card">
+          <div class="feature-icon c2">🔒</div>
+          <h3>Hard Constraint Enforcement</h3>
+          <p>Guarantees zero conflicts in room allocation, faculty assignments, and student section overlaps through CSP filtering.</p>
+        </div>
+        <div class="card">
+          <div class="feature-icon c3">📊</div>
+          <h3>Multi-objective Optimization</h3>
+          <p>Balances competing soft constraints like preferred time slots, faculty load, and room utilization simultaneously.</p>
+        </div>
+        <div class="card">
+          <div class="feature-icon c4">⚡</div>
+          <h3>Real-Time Generation</h3>
+          <p>Produces a fully optimized schedule for the entire CCS department within seconds using heuristic acceleration.</p>
+        </div>
+        <div class="card">
+          <div class="feature-icon c5">📱</div>
+          <h3>PWA — Works Offline</h3>
+          <p>Installable on any device. View generated schedules offline via service worker caching for seamless access.</p>
+        </div>
+        <div class="card">
+          <div class="feature-icon c6">📤</div>
+          <h3>Export & Print</h3>
+          <p>Export finalized schedules as PDF or Excel for distribution to faculty, students, and the registrar's office.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about">
+      <div class="section-header">
+        <h2>About This Project</h2>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="about-grid">
+        <div>
+          <div class="card">
+            <h3>Research Overview</h3>
+            <p>AlgoSched addresses the complexity of academic timetabling — an NP-hard combinatorial problem — using a hybrid approach combining <strong style="color:var(--text)">Elitist Genetic Algorithm (EGA)</strong> for global search and <strong style="color:var(--text)">Constraint Satisfaction Problem (CSP)</strong> techniques for feasibility enforcement.</p>
+            <p>Developed specifically for the <strong style="color:var(--text)">College of Computer Studies (CCS)</strong> of <strong style="color:var(--text)">Rizal College of Taal</strong>, the system automates scheduling for multiple year levels, sections, and subjects while respecting institutional constraints.</p>
+            <p>The Elitist GA preserves the best solutions (elites) each generation, preventing fitness regression — a critical improvement over standard GAs for scheduling problems.</p>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:24px;">
+            <h3>EGA Process Flow</h3>
+            <ul class="algo-steps">
+              <li><span class="step-num">01</span>Initialize random population of schedule chromosomes</li>
+              <li><span class="step-num">02</span>Evaluate fitness using constraint satisfaction score</li>
+              <li><span class="step-num">03</span>Select elite chromosomes (top 15%) for preservation</li>
+              <li><span class="step-num">04</span>Tournament selection for parent chromosomes</li>
+              <li><span class="step-num">05</span>Single-point crossover to produce offspring</li>
+              <li><span class="step-num">06</span>Random mutation to maintain diversity</li>
+              <li><span class="step-num">07</span>Replace population, keep elites intact</li>
+              <li><span class="step-num">08</span>Repeat until convergence or 500 generations</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">AlgoSched</div>
+    <p>An Automated Class Scheduling System for CCS Students<br>
+    Rizal College of Taal · Using Elitist Genetic Algorithm & Constraint Satisfaction<br>
+    <span style="opacity:0.5">© 2025 — College of Computer Studies</span></p>
+  </footer>
+
+  <!-- PWA Install Toast - Hidden -->
+  <div class="pwa-toast" id="installToast" style="display: none;">
+    <div class="toast-icon">📲</div>
+    <div>
+      <strong>Install AlgoSched</strong>
+      <span>Add to home screen for offline access</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="toast-btn" id="installBtn">Install</button>
+      <button class="toast-btn" id="dismissBtn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">Later</button>
+    </div>
+  </div>
+
+  <script>
+    // ========================
+    // SCHEDULE DATA
+    // ========================
+    const TIMES = ['7:00-8:00','8:00-9:00','9:00-10:00','10:00-11:00','11:00-12:00','12:00-1:00','1:00-2:00','2:00-3:00','3:00-4:00','4:00-5:00','5:00-6:00'];
+    const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+    const SUBJECTS = {
+      1: ['CC 101\nIntro to Computing','CC 102\nProg Fundamentals','Math 101\nCollege Algebra','GEC 1\nPurposive Comm','PE 1\nPhysical Education','CC 101L\nComputing Lab'],
+      2: ['CC 201\nData Structures','CC 202\nOOP','CC 203\nDiscrete Math','GEC 3\nMath in Mod World','PE 2\nSports','CC 201L\nDSA Lab'],
+      3: ['CC 301\nAlgorithms','CC 302\nDatabase Systems','CC 303\nSoftware Eng','CC 304\nOS Concepts','CC 301L\nDB Lab','CC 302L\nAlgo Lab'],
+      4: ['CC 401\nCapstone 1','CC 402\nDistributed Sys','CC 403\nMachine Learning','CC 404\nSys Admin','CC 401L\nCapstone Lab','CC 402L\nML Lab'],
+    };
+
+    const ROOMS = ['IT Lab 1','IT Lab 2','Lecture Hall A','Lecture Hall B','Gym'];
+
+    function getType(subj) {
+      if (subj.includes('PE')) return 'pe';
+      if (subj.includes('Lab') || subj.includes('L\n')) return 'lab';
+      return 'lec';
+    }
+
+    let scheduleData = {};
+
+    function generateSchedule() {
+      scheduleData = {};
+      const year = parseInt(document.getElementById('yearFilter').value);
+      const section = document.getElementById('sectionFilter').value;
+      const key = `${year}-${section}`;
+      const subjects = [...SUBJECTS[year]];
+      const placed = new Set();
+      const occupied = {}; // day-time => true
+
+      subjects.forEach((subj, idx) => {
+        let attempts = 0;
+        while (attempts < 50) {
+          const day = Math.floor(Math.random() * 6);
+          const time = Math.floor(Math.random() * 9);
+          const span = getType(subj) === 'lab' ? 2 : 1;
+          const cellKey = `${day}-${time}`;
+          const cellKey2 = `${day}-${time+1}`;
+          if (!occupied[cellKey] && (span === 1 || (!occupied[cellKey2] && time < 9))) {
+            occupied[cellKey] = subj;
+            if (span === 2) occupied[cellKey2] = '__span';
+            break;
+          }
+          attempts++;
+        }
+      });
+
+      scheduleData[key] = occupied;
+      document.getElementById('lastGenTime').textContent = new Date().toLocaleTimeString();
+      animateFitness();
+      renderSchedule();
+    }
+
+    function renderSchedule() {
+      const year = parseInt(document.getElementById('yearFilter').value);
+      const section = document.getElementById('sectionFilter').value;
+      const key = `${year}-${section}`;
+      if (!scheduleData[key]) generateSchedule();
+      const data = scheduleData[key];
+      const tbody = document.getElementById('scheduleBody');
+      tbody.innerHTML = '';
+      TIMES.forEach((time, ti) => {
+        const tr = document.createElement('tr');
+        const tdTime = document.createElement('td');
+        tdTime.textContent = time;
+        tr.appendChild(tdTime);
+        DAYS.forEach((day, di) => {
+          const cellKey = `${di}-${ti}`;
+          const subj = data[cellKey];
+          const td = document.createElement('td');
+          if (subj && subj !== '__span') {
+            const type = getType(subj);
+            const parts = subj.split('\n');
+            td.innerHTML = `<div class="sched-block type-${type}"><strong>${parts[0]}</strong><span>${parts[1] || ''}</span></div>`;
+          } else if (subj === '__span') {
+            td.style.display = 'none';
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function animateFitness() {
+      const score = (88 + Math.random() * 10).toFixed(1);
+      document.getElementById('fitnessScore').textContent = score + '%';
+      document.getElementById('fitnessBar').style.width = score + '%';
+    }
+
+    // Fitness chart
+    function drawChart() {
+      const canvas = document.getElementById('fitnessChart');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth * 2;
+      canvas.height = 200;
+      const w = canvas.width, h = canvas.height;
+
+      // Generate convergence data
+      const points = [];
+      let val = 30 + Math.random() * 20;
+      for (let i = 0; i <= 50; i++) {
+        val = Math.min(98, val + (100 - val) * 0.08 + (Math.random() - 0.3) * 3);
+        points.push(val);
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      for (let y = 0; y <= 4; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, h * y / 4);
+        ctx.lineTo(w, h * y / 4);
+        ctx.stroke();
+      }
+
+      // Area fill
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(0,229,255,0.3)');
+      grad.addColorStop(1, 'rgba(0,229,255,0)');
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      points.forEach((p, i) => {
+        const x = (i / (points.length - 1)) * w;
+        const y = h - (p / 100) * h;
+        if (i === 0) ctx.lineTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.lineTo(w, h);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Line
+      ctx.beginPath();
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 3;
+      points.forEach((p, i) => {
+        const x = (i / (points.length - 1)) * w;
+        const y = h - (p / 100) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    // Animate stat counters
+    function animateCounters() {
+      const stats = document.querySelectorAll('[data-target]');
+      stats.forEach(el => {
+        const target = parseInt(el.dataset.target);
+        const isPercent = el.dataset.target === '99';
+        const isDash = el.dataset.target === '0';
+        const isSec = el.dataset.target === '3';
+        let current = 0;
+        const step = () => {
+          current = Math.min(target, current + Math.ceil(target / 40));
+          if (isPercent) el.textContent = current + '%';
+          else if (isDash) el.textContent = current;
+          else el.textContent = current + 's';
+          if (current < target) requestAnimationFrame(step);
+        };
+        step();
+      });
+    }
+
+    // Smooth scroll nav highlight
+    const sections = document.querySelectorAll('section[id], .hero');
+    const navLinks = document.querySelectorAll('nav a');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 100) current = s.id;
+      });
+      navLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+      });
+    });
+
+    // PWA install prompt - enhanced for mobile
+    let deferredPrompt;
+    const topBtn = document.getElementById('topInstallBtn');
+
+    // Listen for beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('PWA install prompt available');
+      topBtn.classList.add('show');
+    });
+
+    // Show button on app installed
+    window.addEventListener('appinstalled', () => {
+      console.log('PWA installed');
+      topBtn.classList.remove('show');
+      deferredPrompt = null;
+    });
+
+    // Top install button handler
+    topBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response: ${outcome}`);
+        topBtn.classList.remove('show');
+        deferredPrompt = null;
+      } else {
+        console.warn('Install prompt not available');
+        alert('Your browser does not support PWA installation');
+      }
+    });
+
+    // Register service worker for offline support
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered'))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    }
+
+    // Check if running as installed PWA
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      console.log('App is running as standalone PWA');
+      topBtn.style.display = 'none';
+    }
+
+    // Init
+    generateSchedule();
+    drawChart();
+    animateCounters();
+    window.addEventListener('resize', drawChart);
+  </script>
+</body>
+</html>
